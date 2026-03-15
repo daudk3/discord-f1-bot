@@ -150,7 +150,9 @@ function getSessionsFromSchedule(
 
   for (const { key, type } of mapping) {
     const s = schedule[key];
-    if (s) {
+    // The API returns { date: null, time: null } for sessions that don't exist
+    // on a given weekend, so we must check the inner fields, not just truthiness.
+    if (s && s.date && s.time) {
       sessions.push({ type, date: s.date, time: s.time });
     }
   }

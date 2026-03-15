@@ -63,7 +63,8 @@ export function buildScheduleLines(schedule: RaceSchedule): string[] {
 
   for (const session of sessions) {
     const s = schedule[session.key];
-    if (!s) continue;
+    // The API returns { date: null, time: null } for sessions not on this weekend
+    if (!s || !s.date || !s.time) continue;
 
     const dt = parseSessionDateTime(s.date, s.time);
     const timeStr = formatSessionTime(dt);

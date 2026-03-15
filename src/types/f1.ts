@@ -5,8 +5,10 @@
  */
 
 export interface SessionSchedule {
-  date: string;
-  time: string;
+  /** Date string like "2025-03-14", or null if the session doesn't exist this weekend */
+  date: string | null;
+  /** Time string like "15:00:00Z", or null if the session doesn't exist this weekend */
+  time: string | null;
 }
 
 export interface RaceSchedule {

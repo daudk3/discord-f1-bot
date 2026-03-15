@@ -81,7 +81,9 @@ function getPredictionsChannel(client: Client): TextChannel | null {
  * Determine whether a race is a sprint weekend based on its schedule.
  */
 export function isSprintWeekend(schedule: RaceSchedule): boolean {
-  return schedule.sprintRace != null || schedule.sprintQualy != null;
+  // The API returns { date: null, time: null } for sessions that don't exist,
+  // so we must check the inner date field, not just object truthiness.
+  return !!schedule.sprintRace?.date || !!schedule.sprintQualy?.date;
 }
 
 /**
@@ -91,8 +93,8 @@ export function isSprintWeekend(schedule: RaceSchedule): boolean {
 function buildLockWindows(schedule: RaceSchedule): LockWindow {
   const offsetMin = getLockMinutesBefore();
 
-  const qualyDt = parseSessionDateTime(schedule.qualy.date, schedule.qualy.time);
-  const raceDt = parseSessionDateTime(schedule.race.date, schedule.race.time);
+  const qualyDt = parseSessionDateTime(schedule.qualy.date!, schedule.qualy.time!);
+  const raceDt = parseSessionDateTime(schedule.race.date!, schedule.race.time!);
 
   const windows: LockWindow = {
     qualyLock: qualyDt.minus({ minutes: offsetMin }).toISO()!,
@@ -100,10 +102,11 @@ function buildLockWindows(schedule: RaceSchedule): LockWindow {
   };
 
   // Sprint lock = before sprint qualifying if available, else before sprint race
-  if (schedule.sprintQualy) {
+  // Check inner date/time fields since API returns { date: null, time: null } for absent sessions
+  if (schedule.sprintQualy?.date && schedule.sprintQualy?.time) {
     const sprintQualyDt = parseSessionDateTime(schedule.sprintQualy.date, schedule.sprintQualy.time);
     windows.sprintLock = sprintQualyDt.minus({ minutes: offsetMin }).toISO()!;
-  } else if (schedule.sprintRace) {
+  } else if (schedule.sprintRace?.date && schedule.sprintRace?.time) {
     const sprintRaceDt = parseSessionDateTime(schedule.sprintRace.date, schedule.sprintRace.time);
     windows.sprintLock = sprintRaceDt.minus({ minutes: offsetMin }).toISO()!;
   }
@@ -119,7 +122,7 @@ export function ensureWeekendState(race: Race): PredictionWeekendState {
   const existing = getWeekendState(race.raceId);
   if (existing) return existing;
 
-  const year = parseInt(race.schedule.race.date.slice(0, 4), 10);
+  const year = parseInt(race.schedule.race.date!.slice(0, 4), 10);
   const isSprint = isSprintWeekend(race.schedule);
 
   const weekend: PredictionWeekendState = {
@@ -504,7 +507,7 @@ function getEarliestSessionTime(schedule: RaceSchedule): DateTime | null {
     schedule.sprintQualy,
     schedule.sprintRace,
     schedule.race,
-  ].filter((s): s is { date: string; time: string } => s != null);
+  ].filter((s): s is { date: string; time: string } => s != null && s.date != null && s.time != null);
 
   if (sessions.length === 0) return null;
 
