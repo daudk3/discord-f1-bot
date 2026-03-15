@@ -10,6 +10,7 @@ import 'dotenv/config';
 import { REST, Routes } from 'discord.js';
 
 import * as ping from '../src/commands/ping';
+import * as help from '../src/commands/help';
 import * as next from '../src/commands/next';
 import * as last from '../src/commands/last';
 import * as drivers from '../src/commands/drivers';
@@ -21,7 +22,7 @@ import * as predictionRules from '../src/commands/predictionRules';
 import * as predictionResults from '../src/commands/predictionResults';
 
 const commands = [
-  ping, next, last, drivers, constructors,
+  ping, help, next, last, drivers, constructors,
   predict, myPredictions, predictionStandings, predictionRules, predictionResults,
 ].map((c) => c.data.toJSON());
 

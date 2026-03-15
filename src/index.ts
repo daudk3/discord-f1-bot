@@ -18,6 +18,7 @@ import * as next from './commands/next';
 import * as last from './commands/last';
 import * as drivers from './commands/drivers';
 import * as constructors from './commands/constructors';
+import * as help from './commands/help';
 import * as predict from './commands/predict';
 import * as myPredictions from './commands/myPredictions';
 import * as predictionStandings from './commands/predictionStandings';
@@ -42,6 +43,7 @@ const client = new Client({
 const commands = new Collection<string, Command>();
 const commandModules: Command[] = [
   ping,
+  help,
   next,
   last,
   drivers,
