@@ -261,16 +261,10 @@ Prediction state is stored in `data/prediction-state.json`, separate from the ma
 - Cumulative season leaderboard
 - Which announcement/result posts have been sent
 
-## SDK Notes
+## Acknowledgements
 
-This bot uses `@f1api/sdk` v1.1.0. Key observations:
-
-- **SDK packaging bug:** The SDK's `package.json` `exports` field references `./dist/index.cjs` but the actual file is `./dist/index.js`. The `postinstall` script creates a symlink to work around this. If you see a `MODULE_NOT_FOUND` error for `index.cjs`, run `npm run postinstall`.
-- **No exported inner types:** The SDK exports response-level types but not inner data types. This project defines its own matching types in `src/types/f1.ts`.
-- **FP results have no position field:** Free practice results from the API include times but no explicit position. The bot displays them in the order returned (assumed fastest-first).
-- **Nullable session schedules:** The API returns `{ date: null, time: null }` (not `null`) for sessions that don't exist on a given weekend. The bot checks the inner `date`/`time` fields rather than object truthiness.
-- **Response shapes may vary:** The bot validates for null/undefined before accessing nested fields to avoid crashes on unexpected API responses.
+Special thanks to the [f1api.dev](https://f1api.dev) team for providing a free, comprehensive, and well-maintained Formula 1 API. This bot would not be possible without their work.
 
 ## License
 
-ISC
+This project is licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.html). See [LICENSE](LICENSE) for details.
