@@ -192,9 +192,11 @@ export function buildSessionResultEmbed(
     return embed;
   }
 
-  // Wrap all results in a single spoiler block so one tap reveals everything
-  embed.setDescription(`||${lines.join('\n')}||`);
-  embed.setFooter({ text: 'Results hidden as spoilers — tap to reveal' });
+  // Wrap results in a code block inside a single spoiler so iOS users can
+  // reveal everything with one tap (||multi-line|| without a code block
+  // renders as separate tappable spoiler regions on iOS).
+  embed.setDescription(`||${'```'}\n${lines.join('\n')}\n${'```'}||`);
+  embed.setFooter({ text: 'Tap the spoiler block to reveal results' });
 
   return embed;
 }
