@@ -203,13 +203,23 @@ export function buildSessionResultEmbed(
  * Format race results into spoiler-ready lines.
  */
 export function formatRaceResultLines(results: RaceResult[]): string[] {
-  return results.slice(0, 22).map((r) => {
+  const lines: string[] = [];
+  let separatorAdded = false;
+
+  for (const r of results.slice(0, 22)) {
+    // Insert a blank line before the first NC/DNF driver
+    if (r.retired && !separatorAdded) {
+      lines.push('');
+      separatorAdded = true;
+    }
     const rawName = r.driver?.shortName || `${r.driver?.name ?? ''} ${r.driver?.surname ?? ''}`.trim() || '???';
     const name = flaggedName(r.driver?.nationality, rawName);
     const team = r.team?.teamName || '';
     const timeStr = r.retired ? 'DNF' : (r.time || '');
-    return `${r.position}. ${name} - ${team} - ${timeStr}`.trim();
-  });
+    lines.push(`${r.position}. ${name} - ${team} - ${timeStr}`.trim());
+  }
+
+  return lines;
 }
 
 /**
