@@ -9,10 +9,13 @@ A Discord bot for Formula 1 information, powered by [f1api.dev](https://f1api.de
 | Command | Description |
 |---------|-------------|
 | `/ping` | Health check — shows bot latency |
+| `/help` | Show all available commands |
 | `/next` | Next race weekend schedule with all session times |
-| `/last` | Most recent race result (top 10 finishers) |
+| `/last` | Most recent race result |
+| `/results <year> <round>` | All session results for a specific race weekend |
 | `/drivers` | Current driver championship standings (top 10) |
 | `/constructors` | Current constructor championship standings |
+| `/championship <year>` | Driver & constructor standings for any season |
 | `/predict pole` | Predict the pole position winner |
 | `/predict race` | Predict race winner, podium (P1–P3), and fastest lap |
 | `/predict sprint` | Predict sprint winner and podium (sprint weekends only) |
@@ -20,6 +23,8 @@ A Discord bot for Formula 1 information, powered by [f1api.dev](https://f1api.de
 | `/prediction-standings` | View the season prediction championship leaderboard |
 | `/prediction-rules` | View scoring rules and lock timing |
 | `/prediction-results` | View the latest scored weekend prediction results |
+
+All slash command responses are ephemeral (visible only to the invoking user).
 
 ### Automatic Announcements
 
@@ -33,6 +38,12 @@ Both announcement types track what has been posted in a local JSON file to avoid
 ### Prediction Championship
 
 A season-long predictions game where users submit picks for each race weekend and earn points based on accuracy. See the dedicated section below for full details.
+
+### Display
+
+- Driver names are prefixed with their national flag emoji based on nationality data from f1api.dev.
+- Session schedules show completion status indicators and times in Eastern Time.
+- Spoiler results are wrapped in a single block so one tap reveals everything.
 
 ## Setup
 
@@ -109,10 +120,13 @@ src/
 ├── index.ts                    # Bot entry point, event handlers
 ├── commands/                   # Slash command definitions
 │   ├── ping.ts
+│   ├── help.ts
 │   ├── next.ts
 │   ├── last.ts
+│   ├── results.ts              # /results <year> <round>
 │   ├── drivers.ts
 │   ├── constructors.ts
+│   ├── championship.ts         # /championship <year>
 │   ├── predict.ts              # /predict pole|race|sprint (with autocomplete)
 │   ├── myPredictions.ts        # /my-predictions
 │   ├── predictionStandings.ts  # /prediction-standings
@@ -125,10 +139,11 @@ src/
 │   ├── stateStore.ts           # JSON file persistence for posted state
 │   ├── predictions.ts          # Prediction orchestration (locking, scoring, auto-posts)
 │   ├── predictionScoring.ts    # Scoring logic
-│   └── predictionStateStore.ts # Prediction state persistence (prediction-state.json)
+│   └── predictionStateStore.ts # Prediction state persistence
 ├── utils/                      # Shared helpers
 │   ├── format.ts               # Discord embed builders
 │   ├── predictionFormat.ts     # Prediction-specific embed builders
+│   ├── nationality.ts          # Nationality-to-flag emoji mapping
 │   ├── cache.ts                # In-memory TTL cache
 │   ├── time.ts                 # Timezone-aware date/time utilities
 │   └── logger.ts               # Structured logger
@@ -155,7 +170,6 @@ All F1 API access is centralized in `src/services/f1api.ts`. Discord commands ne
 - All human-facing times are displayed in Eastern Time using the IANA timezone `America/Toronto`.
 - This correctly handles EST/EDT daylight saving transitions.
 - To use a different timezone, set the `TIMEZONE` environment variable to any valid IANA timezone identifier.
-- "ET" in output labels refers to Eastern Time (the `America/Toronto` zone).
 
 ## Caching
 
@@ -184,8 +198,6 @@ Native Discord polls are not suitable for this system because they lack multi-fi
 - **Slash commands with autocomplete** — `/predict pole`, `/predict race`, `/predict sprint` let users submit structured picks with driver autocomplete. Users can re-run commands to update picks until the lock time.
 - **Ephemeral confirmations** — all prediction submissions and views are private to the invoking user.
 - **Public "Weekend Results" embeds** — posted automatically after scoring, showing weekend top scorers and the updated season leaderboard.
-
-This is **not** native Discord polls — it's embeds + slash commands designed to feel like a poll flow.
 
 ### Prediction Categories
 
@@ -249,24 +261,15 @@ Prediction state is stored in `data/prediction-state.json`, separate from the ma
 - Cumulative season leaderboard
 - Which announcement/result posts have been sent
 
-## SDK Notes & Limitations
+## SDK Notes
 
 This bot uses `@f1api/sdk` v1.1.0. Key observations:
 
-- **SDK bug:** The SDK's `package.json` `exports` field references `./dist/index.cjs` but the actual file is `./dist/index.js`. The `postinstall` script creates a symlink to work around this. If you see a `MODULE_NOT_FOUND` error for `index.cjs`, run `npm run postinstall`.
-- **No exported inner types:** The SDK exports response-level types (`RaceApiResponse`, etc.) but not inner data types (`Race`, `DriverStandings`, etc.). This project defines its own matching types in `src/types/f1.ts`.
-- **FP results have no position field:** Free practice results from the API include times but no explicit position/ranking. The bot displays them in the order returned (assumed to be fastest-first).
-- **Sprint sessions are nullable:** Sprint Qualifying and Sprint Race schedule entries are `null` for non-sprint weekends. The bot handles this gracefully.
-- **`getLastFpXResults` requires an object parameter:** Even though all fields are optional, you must pass at least `{}`.
+- **SDK packaging bug:** The SDK's `package.json` `exports` field references `./dist/index.cjs` but the actual file is `./dist/index.js`. The `postinstall` script creates a symlink to work around this. If you see a `MODULE_NOT_FOUND` error for `index.cjs`, run `npm run postinstall`.
+- **No exported inner types:** The SDK exports response-level types but not inner data types. This project defines its own matching types in `src/types/f1.ts`.
+- **FP results have no position field:** Free practice results from the API include times but no explicit position. The bot displays them in the order returned (assumed fastest-first).
+- **Nullable session schedules:** The API returns `{ date: null, time: null }` (not `null`) for sessions that don't exist on a given weekend. The bot checks the inner `date`/`time` fields rather than object truthiness.
 - **Response shapes may vary:** The bot validates for null/undefined before accessing nested fields to avoid crashes on unexpected API responses.
-
-## Assumptions
-
-1. The F1 API returns session times in UTC.
-2. Sprint sessions are simply absent (null) from non-sprint weekends.
-3. FP results are returned in fastest-to-slowest order.
-4. The bot is run from the project root directory (for `data/bot-state.json` path resolution).
-5. "ET" in the output refers to Eastern Time (`America/Toronto`), not "ETC".
 
 ## License
 
