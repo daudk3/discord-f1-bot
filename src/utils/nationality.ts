@@ -67,7 +67,7 @@ const NATIONALITY_TO_ISO: Record<string, string> = {
   qatari: 'QA',
   bahraini: 'BH',
   kuwaiti: 'KW',
-  israeli: 'IL',
+  palestinian: 'PS',
 
   // Country names
   'united kingdom': 'GB',
@@ -133,9 +133,9 @@ const NATIONALITY_TO_ISO: Record<string, string> = {
   qatar: 'QA',
   bahrain: 'BH',
   kuwait: 'KW',
-  israel: 'IL',
   'new zealand': 'NZ',
   'new zealander': 'NZ',
+  palestine: 'PS',
 };
 
 /**
