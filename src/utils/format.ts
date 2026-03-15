@@ -88,8 +88,8 @@ export function buildLastRaceEmbed(race: Race, results: RaceResult[]): EmbedBuil
     return embed;
   }
 
-  const top10 = results.slice(0, 10);
-  const lines = top10.map((r) => {
+  const top22 = results.slice(0, 22);
+  const lines = top22.map((r) => {
     const rawName = r.driver?.shortName || `${r.driver?.name ?? ''} ${r.driver?.surname ?? ''}`.trim() || 'Unknown';
     const name = flaggedName(r.driver?.nationality, rawName);
     const team = r.team?.teamName || '';
@@ -100,7 +100,7 @@ export function buildLastRaceEmbed(race: Race, results: RaceResult[]): EmbedBuil
   });
 
   embed.setDescription(lines.join('\n'));
-  embed.setFooter({ text: `Showing top ${top10.length} of ${results.length} classified` });
+  embed.setFooter({ text: `Showing top ${top22.length} of ${results.length} classified` });
 
   return embed;
 }
@@ -113,8 +113,8 @@ export function buildDriverStandingsEmbed(standings: DriverStanding[], season: s
     .setColor(F1_RED)
     .setTitle(`🏆 ${season} Driver Standings`);
 
-  const top10 = standings.slice(0, 10);
-  const lines = top10.map((s) => {
+  const top22 = standings.slice(0, 22);
+  const lines = top22.map((s) => {
     const rawName = s.driver?.shortName
       || `${s.driver?.name ?? ''} ${s.driver?.surname ?? ''}`.trim()
       || 'Unknown';
@@ -138,14 +138,14 @@ export function buildConstructorStandingsEmbed(standings: ConstructorStanding[],
     .setColor(F1_RED)
     .setTitle(`🏗️ ${season} Constructor Standings`);
 
-  const top10 = standings.slice(0, 10);
-  const lines = top10.map((s) => {
+  const top11 = standings.slice(0, 11);
+  const lines = top11.map((s) => {
     const name = s.team?.teamName || 'Unknown';
     return `**${s.position}.** ${name} — **${s.points}** pts`;
   });
 
   embed.setDescription(lines.join('\n'));
-  embed.setFooter({ text: `Showing ${top10.length} constructors` });
+  embed.setFooter({ text: `Showing ${top11.length} constructors` });
 
   return embed;
 }
@@ -204,7 +204,7 @@ export function buildSessionResultEmbed(
  * Format race results into spoiler-ready lines.
  */
 export function formatRaceResultLines(results: RaceResult[]): string[] {
-  return results.slice(0, 20).map((r) => {
+  return results.slice(0, 22).map((r) => {
     const rawName = r.driver?.shortName || `${r.driver?.name ?? ''} ${r.driver?.surname ?? ''}`.trim() || '???';
     const name = flaggedName(r.driver?.nationality, rawName);
     const team = r.team?.teamName || '';
@@ -217,7 +217,7 @@ export function formatRaceResultLines(results: RaceResult[]): string[] {
  * Format qualifying results into spoiler-ready lines.
  */
 export function formatQualyResultLines(results: QualyResult[]): string[] {
-  return results.slice(0, 20).map((r) => {
+  return results.slice(0, 22).map((r) => {
     const rawName = r.driver?.shortName || `${r.driver?.name ?? ''} ${r.driver?.surname ?? ''}`.trim() || '???';
     const name = flaggedName(r.driver?.nationality, rawName);
     const team = r.team?.teamName || '';
@@ -231,7 +231,7 @@ export function formatQualyResultLines(results: QualyResult[]): string[] {
  */
 export function formatFpResultLines(results: FpResult[]): string[] {
   // FP results from the API don't have a position; they may already be sorted by time
-  return results.slice(0, 20).map((r, i) => {
+  return results.slice(0, 22).map((r, i) => {
     const rawName = r.driver?.shortName || `${r.driver?.name ?? ''} ${r.driver?.surname ?? ''}`.trim() || '???';
     const name = flaggedName(r.driver?.nationality, rawName);
     const team = r.team?.teamName || '';
@@ -244,7 +244,7 @@ export function formatFpResultLines(results: FpResult[]): string[] {
  * Format sprint race results into spoiler-ready lines.
  */
 export function formatSprintRaceResultLines(results: SprintRaceResult[]): string[] {
-  return results.slice(0, 20).map((r) => {
+  return results.slice(0, 22).map((r) => {
     const rawName = r.driver?.shortName || `${r.driver?.name ?? ''} ${r.driver?.surname ?? ''}`.trim() || '???';
     const name = flaggedName(r.driver?.nationality, rawName);
     const team = r.team?.teamName || '';
@@ -256,7 +256,7 @@ export function formatSprintRaceResultLines(results: SprintRaceResult[]): string
  * Format sprint qualifying results into spoiler-ready lines.
  */
 export function formatSprintQualyResultLines(results: SprintQualyResult[]): string[] {
-  return results.slice(0, 20).map((r) => {
+  return results.slice(0, 22).map((r) => {
     const rawName = r.driver?.shortName || `${r.driver?.name ?? ''} ${r.driver?.surname ?? ''}`.trim() || '???';
     const name = flaggedName(r.driver?.nationality, rawName);
     const team = r.team?.teamName || '';
