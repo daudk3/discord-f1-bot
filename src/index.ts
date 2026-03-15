@@ -24,6 +24,7 @@ import * as myPredictions from './commands/myPredictions';
 import * as predictionStandings from './commands/predictionStandings';
 import * as predictionRules from './commands/predictionRules';
 import * as predictionResults from './commands/predictionResults';
+import * as results from './commands/results';
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -53,6 +54,7 @@ const commandModules: Command[] = [
   predictionStandings,
   predictionRules,
   predictionResults,
+  results,
 ];
 for (const mod of commandModules) {
   commands.set(mod.data.name, mod);

@@ -20,10 +20,12 @@ import * as myPredictions from '../src/commands/myPredictions';
 import * as predictionStandings from '../src/commands/predictionStandings';
 import * as predictionRules from '../src/commands/predictionRules';
 import * as predictionResults from '../src/commands/predictionResults';
+import * as results from '../src/commands/results';
 
 const commands = [
   ping, help, next, last, drivers, constructors,
   predict, myPredictions, predictionStandings, predictionRules, predictionResults,
+  results,
 ].map((c) => c.data.toJSON());
 
 async function main(): Promise<void> {
