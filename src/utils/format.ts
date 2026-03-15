@@ -13,6 +13,7 @@ import {
   RaceSchedule,
 } from '../types/f1';
 import { parseSessionDateTime, formatSessionTime, isInPast } from './time';
+import { flaggedName } from './nationality';
 
 const F1_RED = 0xe10600;
 
@@ -89,7 +90,8 @@ export function buildLastRaceEmbed(race: Race, results: RaceResult[]): EmbedBuil
 
   const top10 = results.slice(0, 10);
   const lines = top10.map((r) => {
-    const name = r.driver?.shortName || `${r.driver?.name ?? ''} ${r.driver?.surname ?? ''}`.trim() || 'Unknown';
+    const rawName = r.driver?.shortName || `${r.driver?.name ?? ''} ${r.driver?.surname ?? ''}`.trim() || 'Unknown';
+    const name = flaggedName(r.driver?.nationality, rawName);
     const team = r.team?.teamName || '';
     const timeStr = r.retired ? 'DNF' : (r.time || '');
     const teamPart = team ? ` - ${team}` : '';
@@ -113,9 +115,10 @@ export function buildDriverStandingsEmbed(standings: DriverStanding[], season: s
 
   const top10 = standings.slice(0, 10);
   const lines = top10.map((s) => {
-    const name = s.driver?.shortName
+    const rawName = s.driver?.shortName
       || `${s.driver?.name ?? ''} ${s.driver?.surname ?? ''}`.trim()
       || 'Unknown';
+    const name = flaggedName(s.driver?.nationality, rawName);
     const team = s.team?.teamName || '';
     const teamPart = team ? ` | ${team}` : '';
     return `**${s.position}.** ${name}${teamPart} — **${s.points}** pts`;
@@ -202,7 +205,8 @@ export function buildSessionResultEmbed(
  */
 export function formatRaceResultLines(results: RaceResult[]): string[] {
   return results.slice(0, 20).map((r) => {
-    const name = r.driver?.shortName || `${r.driver?.name ?? ''} ${r.driver?.surname ?? ''}`.trim() || '???';
+    const rawName = r.driver?.shortName || `${r.driver?.name ?? ''} ${r.driver?.surname ?? ''}`.trim() || '???';
+    const name = flaggedName(r.driver?.nationality, rawName);
     const team = r.team?.teamName || '';
     const timeStr = r.retired ? 'DNF' : (r.time || '');
     return `${r.position}. ${name} - ${team} - ${timeStr}`.trim();
@@ -214,7 +218,8 @@ export function formatRaceResultLines(results: RaceResult[]): string[] {
  */
 export function formatQualyResultLines(results: QualyResult[]): string[] {
   return results.slice(0, 20).map((r) => {
-    const name = r.driver?.shortName || `${r.driver?.name ?? ''} ${r.driver?.surname ?? ''}`.trim() || '???';
+    const rawName = r.driver?.shortName || `${r.driver?.name ?? ''} ${r.driver?.surname ?? ''}`.trim() || '???';
+    const name = flaggedName(r.driver?.nationality, rawName);
     const team = r.team?.teamName || '';
     const bestTime = r.q3 || r.q2 || r.q1 || 'No time';
     return `${r.gridPosition}. ${name} - ${team} - ${bestTime}`;
@@ -227,7 +232,8 @@ export function formatQualyResultLines(results: QualyResult[]): string[] {
 export function formatFpResultLines(results: FpResult[]): string[] {
   // FP results from the API don't have a position; they may already be sorted by time
   return results.slice(0, 20).map((r, i) => {
-    const name = r.driver?.shortName || `${r.driver?.name ?? ''} ${r.driver?.surname ?? ''}`.trim() || '???';
+    const rawName = r.driver?.shortName || `${r.driver?.name ?? ''} ${r.driver?.surname ?? ''}`.trim() || '???';
+    const name = flaggedName(r.driver?.nationality, rawName);
     const team = r.team?.teamName || '';
     const time = r.time || 'No time';
     return `${i + 1}. ${name} - ${team} - ${time}`;
@@ -239,7 +245,8 @@ export function formatFpResultLines(results: FpResult[]): string[] {
  */
 export function formatSprintRaceResultLines(results: SprintRaceResult[]): string[] {
   return results.slice(0, 20).map((r) => {
-    const name = r.driver?.shortName || `${r.driver?.name ?? ''} ${r.driver?.surname ?? ''}`.trim() || '???';
+    const rawName = r.driver?.shortName || `${r.driver?.name ?? ''} ${r.driver?.surname ?? ''}`.trim() || '???';
+    const name = flaggedName(r.driver?.nationality, rawName);
     const team = r.team?.teamName || '';
     return `${r.position}. ${name} - ${team} - ${r.points} pts`;
   });
@@ -250,7 +257,8 @@ export function formatSprintRaceResultLines(results: SprintRaceResult[]): string
  */
 export function formatSprintQualyResultLines(results: SprintQualyResult[]): string[] {
   return results.slice(0, 20).map((r) => {
-    const name = r.driver?.shortName || `${r.driver?.name ?? ''} ${r.driver?.surname ?? ''}`.trim() || '???';
+    const rawName = r.driver?.shortName || `${r.driver?.name ?? ''} ${r.driver?.surname ?? ''}`.trim() || '???';
+    const name = flaggedName(r.driver?.nationality, rawName);
     const team = r.team?.teamName || '';
     const bestTime = r.sq3 || r.sq2 || r.sq1 || 'No time';
     return `${r.gridPosition}. ${name} - ${team} - ${bestTime}`;

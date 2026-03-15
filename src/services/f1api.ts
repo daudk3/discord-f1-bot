@@ -232,9 +232,9 @@ export async function getCurrentConstructorStandings(): Promise<{
  * Returns simplified list: { driverId, shortName, name, surname, teamName }.
  */
 export async function getCurrentDriversList(): Promise<
-  { driverId: string; shortName: string; name: string; surname: string; teamName: string }[]
+  { driverId: string; shortName: string; name: string; surname: string; nationality: string; teamName: string }[]
 > {
-  const cached = cache.get<{ driverId: string; shortName: string; name: string; surname: string; teamName: string }[]>('current-drivers-list');
+  const cached = cache.get<{ driverId: string; shortName: string; name: string; surname: string; nationality: string; teamName: string }[]>('current-drivers-list');
   if (cached) return cached;
 
   try {
@@ -245,6 +245,7 @@ export async function getCurrentDriversList(): Promise<
       shortName: s.driver?.shortName ?? '',
       name: s.driver?.name ?? '',
       surname: s.driver?.surname ?? '',
+      nationality: s.driver?.nationality ?? '',
       teamName: s.team?.teamName ?? '',
     }));
     cache.set('current-drivers-list', list, CACHE_TTL.STANDINGS);

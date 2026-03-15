@@ -24,6 +24,7 @@ import {
 import { getWeekendState } from '../services/predictionStateStore';
 import { DriverPick, UserPicks, PredictionCategory } from '../types/predictions';
 import { buildMyPredictionsEmbed } from '../utils/predictionFormat';
+import { flaggedName } from '../utils/nationality';
 
 export const data = new SlashCommandBuilder()
   .setName('predict')
@@ -87,7 +88,7 @@ export async function autocomplete(interaction: AutocompleteInteraction): Promis
     .slice(0, 25)
     .map((d) => ({
       name: `${d.name} ${d.surname} (${d.shortName}) — ${d.teamName}`,
-      value: `${d.driverId}::${d.shortName || d.surname}`,
+      value: `${d.driverId}::${d.shortName || d.surname}::${d.nationality}`,
     }));
 
   await interaction.respond(filtered);
@@ -95,12 +96,15 @@ export async function autocomplete(interaction: AutocompleteInteraction): Promis
 
 /**
  * Parse a driver selection value from autocomplete.
- * Format: "driverId::displayName"
+ * Format: "driverId::shortName::nationality"
  */
 function parsePick(value: string): DriverPick | null {
   const parts = value.split('::');
   if (parts.length < 2) return null;
-  return { driverId: parts[0], displayName: parts[1] };
+  const driverId = parts[0];
+  const shortName = parts[1];
+  const nationality = parts[2] || '';
+  return { driverId, displayName: flaggedName(nationality, shortName) };
 }
 
 export async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
