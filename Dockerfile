@@ -1,27 +1,27 @@
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY tsconfig.json ./
 COPY src/ ./src/
 COPY scripts/ ./scripts/
 
-RUN npm run build && \
-    # Fix @f1api/sdk packaging bug (exports references index.cjs but file is index.js)
-    ln -sf index.js node_modules/@f1api/sdk/dist/index.cjs
+RUN npm run build
 
 # ─── Runtime image ────────────────────────────────────────────
 
-FROM node:20-alpine
+FROM node:20-slim
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci --omit=dev && \
-    ln -sf index.js node_modules/@f1api/sdk/dist/index.cjs
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+# Fix @f1api/sdk packaging bug (exports references index.cjs but file is index.js)
+RUN ln -sf index.js node_modules/@f1api/sdk/dist/index.cjs
 
 COPY --from=builder /app/dist ./dist
 

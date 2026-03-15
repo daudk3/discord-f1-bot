@@ -6,5 +6,5 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
   const latency = Date.now() - interaction.createdTimestamp;
-  await interaction.reply(`🏎️ Pong! Latency: **${latency}ms** | API: **${interaction.client.ws.ping}ms**`);
+  await interaction.reply({ content: `🏎️ Pong! Latency: **${latency}ms** | API: **${interaction.client.ws.ping}ms**`, ephemeral: true });
 }

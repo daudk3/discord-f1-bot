@@ -7,7 +7,7 @@ export const data = new SlashCommandBuilder()
   .setDescription('Show the next Formula 1 race weekend schedule');
 
 export async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
-  await interaction.deferReply();
+  await interaction.deferReply({ ephemeral: true });
 
   const race = await getNextRace();
   if (!race) {

@@ -190,9 +190,8 @@ export function buildSessionResultEmbed(
     return embed;
   }
 
-  // Wrap each result line in spoiler tags
-  const spoilerLines = lines.map((line) => `||${line}||`);
-  embed.setDescription(spoilerLines.join('\n'));
+  // Wrap all results in a single spoiler block so one tap reveals everything
+  embed.setDescription(`||${lines.join('\n')}||`);
   embed.setFooter({ text: 'Results hidden as spoilers — tap to reveal' });
 
   return embed;

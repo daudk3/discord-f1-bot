@@ -7,7 +7,7 @@ export const data = new SlashCommandBuilder()
   .setDescription('Show the current Formula 1 driver standings');
 
 export async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
-  await interaction.deferReply();
+  await interaction.deferReply({ ephemeral: true });
 
   const data = await getCurrentDriverStandings();
   if (!data || data.standings.length === 0) {

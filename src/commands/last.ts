@@ -8,7 +8,7 @@ export const data = new SlashCommandBuilder()
   .setDescription('Show the most recent Formula 1 race result');
 
 export async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
-  await interaction.deferReply();
+  await interaction.deferReply({ ephemeral: true });
 
   const [race, resultData] = await Promise.all([
     getLastRace(),
