@@ -55,7 +55,7 @@ A season-long predictions game where users submit picks for each race weekend an
 ### Install
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/daudk3/discord-f1-bot
 cd discord-f1-bot
 npm install
 ```
