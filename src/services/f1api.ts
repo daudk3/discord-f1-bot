@@ -225,6 +225,38 @@ export async function getCurrentConstructorStandings(): Promise<{
   }
 }
 
+export async function getDriverStandingsByYear(year: number): Promise<{
+  season: string | number;
+  standings: DriverStanding[];
+} | null> {
+  try {
+    const res = await f1.getDriverStandings({ year, limit: 30 });
+    return {
+      season: res.season ?? year,
+      standings: (res.drivers_championship ?? []) as DriverStanding[],
+    };
+  } catch (err) {
+    logger.error('Failed to fetch driver standings by year', { error: String(err), year });
+    return null;
+  }
+}
+
+export async function getConstructorStandingsByYear(year: number): Promise<{
+  season: string | number;
+  standings: ConstructorStanding[];
+} | null> {
+  try {
+    const res = await f1.getConstructorStandings({ year, limit: 15 });
+    return {
+      season: res.season ?? year,
+      standings: (res.constructors_championship ?? []) as ConstructorStanding[],
+    };
+  } catch (err) {
+    logger.error('Failed to fetch constructor standings by year', { error: String(err), year });
+    return null;
+  }
+}
+
 // ─── Prediction-specific data accessors ──────────────────────
 
 /**

@@ -21,11 +21,12 @@ import * as predictionStandings from '../src/commands/predictionStandings';
 import * as predictionRules from '../src/commands/predictionRules';
 import * as predictionResults from '../src/commands/predictionResults';
 import * as results from '../src/commands/results';
+import * as championship from '../src/commands/championship';
 
 const commands = [
   ping, help, next, last, drivers, constructors,
   predict, myPredictions, predictionStandings, predictionRules, predictionResults,
-  results,
+  results, championship,
 ].map((c) => c.data.toJSON());
 
 async function main(): Promise<void> {

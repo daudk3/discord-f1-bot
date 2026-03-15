@@ -25,7 +25,8 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
           '`/last` — Most recent race result (top 10)\n' +
           '`/results <year> <round>` — All session results for a race weekend\n' +
           '`/drivers` — Current driver championship standings\n' +
-          '`/constructors` — Current constructor standings',
+          '`/constructors` — Current constructor standings\n' +
+          '`/championship <year>` — Driver & constructor standings for any season',
       },
       {
         name: '🔮 Predictions',
