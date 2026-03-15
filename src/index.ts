@@ -5,10 +5,11 @@ import {
   GatewayIntentBits,
   Events,
   ChatInputCommandInteraction,
-  SlashCommandBuilder,
+  AutocompleteInteraction,
 } from 'discord.js';
 import { logger } from './utils/logger';
 import { loadState } from './services/stateStore';
+import { loadPredictionState } from './services/predictionStateStore';
 import { startScheduler, stopScheduler } from './services/scheduler';
 
 // Import commands
@@ -17,12 +18,18 @@ import * as next from './commands/next';
 import * as last from './commands/last';
 import * as drivers from './commands/drivers';
 import * as constructors from './commands/constructors';
+import * as predict from './commands/predict';
+import * as myPredictions from './commands/myPredictions';
+import * as predictionStandings from './commands/predictionStandings';
+import * as predictionRules from './commands/predictionRules';
+import * as predictionResults from './commands/predictionResults';
 
 // ─── Types ────────────────────────────────────────────────────
 
 interface Command {
-  data: SlashCommandBuilder;
+  data: { name: string; toJSON: () => unknown };
   execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
+  autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>;
 }
 
 // ─── Client setup ─────────────────────────────────────────────
@@ -33,7 +40,18 @@ const client = new Client({
 
 // Register commands in a collection
 const commands = new Collection<string, Command>();
-const commandModules: Command[] = [ping, next, last, drivers, constructors];
+const commandModules: Command[] = [
+  ping,
+  next,
+  last,
+  drivers,
+  constructors,
+  predict,
+  myPredictions,
+  predictionStandings,
+  predictionRules,
+  predictionResults,
+];
 for (const mod of commandModules) {
   commands.set(mod.data.name, mod);
 }
@@ -45,6 +63,7 @@ client.once(Events.ClientReady, (readyClient) => {
 
   // Load persisted state
   loadState();
+  loadPredictionState();
 
   // Start the announcement/result scheduler
   if (process.env.DISCORD_ANNOUNCEMENT_CHANNEL_ID) {
@@ -55,6 +74,19 @@ client.once(Events.ClientReady, (readyClient) => {
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
+  // Handle autocomplete interactions
+  if (interaction.isAutocomplete()) {
+    const command = commands.get(interaction.commandName);
+    if (command?.autocomplete) {
+      try {
+        await command.autocomplete(interaction);
+      } catch (err) {
+        logger.error('Autocomplete failed', { command: interaction.commandName, error: String(err) });
+      }
+    }
+    return;
+  }
+
   if (!interaction.isChatInputCommand()) return;
 
   const command = commands.get(interaction.commandName);

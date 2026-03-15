@@ -5,6 +5,7 @@
 
 import { Client } from 'discord.js';
 import { checkWeekendAnnouncement, checkSessionResults } from './announcements';
+import { checkPredictionAnnouncement, checkPredictionResults } from './predictions';
 import { updateLastCheck } from './stateStore';
 import { logger } from '../utils/logger';
 
@@ -53,6 +54,18 @@ async function runCheck(client: Client): Promise<void> {
     await checkSessionResults(client);
   } catch (err) {
     logger.error('Scheduler: session results check failed', { error: String(err) });
+  }
+
+  try {
+    await checkPredictionAnnouncement(client);
+  } catch (err) {
+    logger.error('Scheduler: prediction announcement check failed', { error: String(err) });
+  }
+
+  try {
+    await checkPredictionResults(client);
+  } catch (err) {
+    logger.error('Scheduler: prediction results check failed', { error: String(err) });
   }
 
   updateLastCheck();

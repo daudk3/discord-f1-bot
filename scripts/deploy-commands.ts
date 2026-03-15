@@ -14,8 +14,16 @@ import * as next from '../src/commands/next';
 import * as last from '../src/commands/last';
 import * as drivers from '../src/commands/drivers';
 import * as constructors from '../src/commands/constructors';
+import * as predict from '../src/commands/predict';
+import * as myPredictions from '../src/commands/myPredictions';
+import * as predictionStandings from '../src/commands/predictionStandings';
+import * as predictionRules from '../src/commands/predictionRules';
+import * as predictionResults from '../src/commands/predictionResults';
 
-const commands = [ping, next, last, drivers, constructors].map((c) => c.data.toJSON());
+const commands = [
+  ping, next, last, drivers, constructors,
+  predict, myPredictions, predictionStandings, predictionRules, predictionResults,
+].map((c) => c.data.toJSON());
 
 async function main(): Promise<void> {
   const token = process.env.DISCORD_TOKEN;

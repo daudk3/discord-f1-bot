@@ -224,3 +224,72 @@ export async function getCurrentConstructorStandings(): Promise<{
     return null;
   }
 }
+
+// ─── Prediction-specific data accessors ──────────────────────
+
+/**
+ * Get current season drivers for prediction autocomplete.
+ * Returns simplified list: { driverId, shortName, name, surname, teamName }.
+ */
+export async function getCurrentDriversList(): Promise<
+  { driverId: string; shortName: string; name: string; surname: string; teamName: string }[]
+> {
+  const cached = cache.get<{ driverId: string; shortName: string; name: string; surname: string; teamName: string }[]>('current-drivers-list');
+  if (cached) return cached;
+
+  try {
+    const standings = await getCurrentDriverStandings();
+    if (!standings) return [];
+    const list = standings.standings.map((s) => ({
+      driverId: s.driverId,
+      shortName: s.driver?.shortName ?? '',
+      name: s.driver?.name ?? '',
+      surname: s.driver?.surname ?? '',
+      teamName: s.team?.teamName ?? '',
+    }));
+    cache.set('current-drivers-list', list, CACHE_TTL.STANDINGS);
+    return list;
+  } catch (err) {
+    logger.error('Failed to fetch current drivers list', { error: String(err) });
+    return [];
+  }
+}
+
+/**
+ * Get qualifying results for a specific round (used for pole position scoring).
+ */
+export async function getQualyResults(year: number, round: number): Promise<QualyResult[]> {
+  try {
+    const res = await f1.getQualyResults({ year, round, limit: 25 });
+    return (res.races?.qualyResults ?? []) as QualyResult[];
+  } catch (err) {
+    logger.error('Failed to fetch qualy results', { error: String(err), year, round });
+    return [];
+  }
+}
+
+/**
+ * Get sprint qualifying results for a specific round.
+ */
+export async function getSprintQualyResults(year: number, round: number): Promise<SprintQualyResult[]> {
+  try {
+    const res = await f1.getSprintQualyResults({ year, round, limit: 25 });
+    return (res.races?.sprintQualyResults ?? []) as SprintQualyResult[];
+  } catch (err) {
+    logger.error('Failed to fetch sprint qualy results', { error: String(err), year, round });
+    return [];
+  }
+}
+
+/**
+ * Get sprint race results for a specific round.
+ */
+export async function getSprintRaceResults(year: number, round: number): Promise<SprintRaceResult[]> {
+  try {
+    const res = await f1.getSprintRaceResults({ year, round, limit: 25 });
+    return (res.races?.sprintRaceResults ?? []) as SprintRaceResult[];
+  } catch (err) {
+    logger.error('Failed to fetch sprint race results', { error: String(err), year, round });
+    return [];
+  }
+}

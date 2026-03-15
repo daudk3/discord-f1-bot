@@ -13,6 +13,13 @@ A Discord bot for Formula 1 information, powered by [f1api.dev](https://f1api.de
 | `/last` | Most recent race result (top 10 finishers) |
 | `/drivers` | Current driver championship standings (top 10) |
 | `/constructors` | Current constructor championship standings |
+| `/predict pole` | Predict the pole position winner |
+| `/predict race` | Predict race winner, podium (P1–P3), and fastest lap |
+| `/predict sprint` | Predict sprint winner and podium (sprint weekends only) |
+| `/my-predictions` | View your current picks for this weekend |
+| `/prediction-standings` | View the season prediction championship leaderboard |
+| `/prediction-rules` | View scoring rules and lock timing |
+| `/prediction-results` | View the latest scored weekend prediction results |
 
 ### Automatic Announcements
 
@@ -22,6 +29,10 @@ When configured with a channel ID, the bot automatically:
 - **Post-session results** — After each session completes (FP1–FP3, Qualifying, Sprint Qualifying, Sprint Race, Race), posts results wrapped in Discord spoiler tags so users can choose to reveal them.
 
 Both announcement types track what has been posted in a local JSON file to avoid duplicates, even across restarts.
+
+### Prediction Championship
+
+A season-long predictions game where users submit picks for each race weekend and earn points based on accuracy. See the dedicated section below for full details.
 
 ## Setup
 
@@ -55,6 +66,10 @@ cp .env.example .env
 | `SESSION_ANNOUNCEMENT_HOURS_BEFORE` | No | Hours before first session to post schedule (default: 24) |
 | `SESSION_RESULT_POLL_MINUTES` | No | Polling interval for result checks in minutes (default: 10) |
 | `TIMEZONE` | No | IANA timezone for displayed times (default: `America/Toronto`) |
+| `DISCORD_PREDICTIONS_CHANNEL_ID` | No | Channel ID for prediction announcements and leaderboard |
+| `PREDICTION_LOCK_MINUTES_BEFORE` | No | Minutes before a session to lock predictions (default: 5) |
+| `ENABLE_SPRINT_PREDICTIONS` | No | Enable sprint predictions on sprint weekends (default: `true`) |
+| `ENABLE_WEEKEND_PREDICTION_POSTS` | No | Enable automated prediction open/results posts (default: `true`) |
 
 \* Required for guild-scoped command registration. Not needed if using `--global`.
 
@@ -91,26 +106,36 @@ npm start
 
 ```
 src/
-├── index.ts              # Bot entry point, event handlers
-├── commands/             # Slash command definitions
+├── index.ts                    # Bot entry point, event handlers
+├── commands/                   # Slash command definitions
 │   ├── ping.ts
 │   ├── next.ts
 │   ├── last.ts
 │   ├── drivers.ts
-│   └── constructors.ts
-├── services/             # Business logic
-│   ├── f1api.ts          # Centralized SDK access (all @f1api/sdk calls)
-│   ├── scheduler.ts      # In-process polling scheduler
-│   ├── announcements.ts  # Weekend + result posting logic
-│   └── stateStore.ts     # JSON file persistence for posted state
-├── utils/                # Shared helpers
-│   ├── format.ts         # Discord embed builders
-│   ├── cache.ts          # In-memory TTL cache
-│   ├── time.ts           # Timezone-aware date/time utilities
-│   └── logger.ts         # Structured logger
-└── types/                # TypeScript type definitions
-    ├── f1.ts             # F1 data types (extracted from SDK responses)
-    └── state.ts          # Bot state types
+│   ├── constructors.ts
+│   ├── predict.ts              # /predict pole|race|sprint (with autocomplete)
+│   ├── myPredictions.ts        # /my-predictions
+│   ├── predictionStandings.ts  # /prediction-standings
+│   ├── predictionRules.ts      # /prediction-rules
+│   └── predictionResults.ts    # /prediction-results
+├── services/                   # Business logic
+│   ├── f1api.ts                # Centralized SDK access (all @f1api/sdk calls)
+│   ├── scheduler.ts            # In-process polling scheduler
+│   ├── announcements.ts        # Weekend + result posting logic
+│   ├── stateStore.ts           # JSON file persistence for posted state
+│   ├── predictions.ts          # Prediction orchestration (locking, scoring, auto-posts)
+│   ├── predictionScoring.ts    # Scoring logic
+│   └── predictionStateStore.ts # Prediction state persistence (prediction-state.json)
+├── utils/                      # Shared helpers
+│   ├── format.ts               # Discord embed builders
+│   ├── predictionFormat.ts     # Prediction-specific embed builders
+│   ├── cache.ts                # In-memory TTL cache
+│   ├── time.ts                 # Timezone-aware date/time utilities
+│   └── logger.ts               # Structured logger
+└── types/                      # TypeScript type definitions
+    ├── f1.ts                   # F1 data types (extracted from SDK responses)
+    ├── state.ts                # Bot state types
+    └── predictions.ts          # Prediction types (picks, scoring, leaderboard)
 ```
 
 All F1 API access is centralized in `src/services/f1api.ts`. Discord commands never touch the SDK directly.
@@ -144,6 +169,85 @@ The bot uses an in-memory TTL cache to reduce redundant API calls:
 | Race results | 30 minutes |
 | Session results | 15 minutes |
 | All current races | 1 hour |
+
+## Prediction Championship
+
+### Overview
+
+The bot includes a season-long prediction championship where Discord users submit picks for each race weekend and earn points based on accuracy. Standings accumulate across the season.
+
+### Poll-Style UX
+
+Native Discord polls are not suitable for this system because they lack multi-field structured input, editable picks, separate scoring categories, and lock timing. Instead, the bot implements a **poll-style UX** through:
+
+- **Public "Predictions Open" embeds** — posted automatically before each weekend to the predictions channel, showing categories, lock times, and the current season leaderboard.
+- **Slash commands with autocomplete** — `/predict pole`, `/predict race`, `/predict sprint` let users submit structured picks with driver autocomplete. Users can re-run commands to update picks until the lock time.
+- **Ephemeral confirmations** — all prediction submissions and views are private to the invoking user.
+- **Public "Weekend Results" embeds** — posted automatically after scoring, showing weekend top scorers and the updated season leaderboard.
+
+This is **not** native Discord polls — it's embeds + slash commands designed to feel like a poll flow.
+
+### Prediction Categories
+
+**Race predictions (every weekend):**
+- **Pole Position** — locks before qualifying
+- **Race Winner** — locks before race
+- **Race Podium** (P1, P2, P3) — locks before race
+- **Fastest Lap** — locks before race
+
+**Sprint predictions (sprint weekends only):**
+- **Sprint Winner** — locks before sprint qualifying
+- **Sprint Podium** (P1, P2, P3) — locks before sprint qualifying
+
+Sprint categories only appear when the weekend has sprint sessions according to f1api.dev data.
+
+### Scoring Rules
+
+| Category | Condition | Points |
+|----------|-----------|--------|
+| Race Winner | Correct | 10 |
+| Podium | Exact position | 8 per driver |
+| Podium | On podium, wrong position | 4 per driver |
+| Pole Position | Correct | 6 |
+| Fastest Lap | Correct | 4 |
+| Sprint Winner | Correct | 6 |
+| Sprint Podium | Exact position | 4 per driver |
+| Sprint Podium | On podium, wrong position | 2 per driver |
+
+**Max points per weekend:** 44 (non-sprint) or 62 (sprint)
+
+**Tie-breaking:** (1) higher total points, (2) more categories with points earned, (3) more weekends participated, (4) alphabetical.
+
+### Lock Timing
+
+Predictions lock automatically before the relevant session:
+- Pole predictions lock before qualifying start
+- Race predictions lock before race start
+- Sprint predictions lock before sprint qualifying start
+
+The offset is configurable via `PREDICTION_LOCK_MINUTES_BEFORE` (default: 5 minutes). All lock times are displayed in Eastern Time.
+
+### Automated Posts
+
+When `DISCORD_PREDICTIONS_CHANNEL_ID` is set and `ENABLE_WEEKEND_PREDICTION_POSTS=true`:
+
+1. **"Predictions Open"** — posted before each weekend (within the same window as the schedule announcement). Includes: race info, prediction categories, lock times, how to submit, and the current top 10 season leaderboard.
+2. **"Weekend Prediction Results"** — posted after the race is scored. Includes: weekend top scorers, scoring breakdown, and the updated top 10 season leaderboard.
+
+Both posts are tracked in state to avoid duplicates across restarts.
+
+### Scoring Trigger
+
+Scoring runs automatically via the scheduler after the race end time + 3 hours. It fetches official results from f1api.dev (qualifying for pole, race results for winner/podium, race info for fastest lap, sprint results if applicable). If results are not yet available, scoring is deferred until the next check.
+
+### State Persistence
+
+Prediction state is stored in `data/prediction-state.json`, separate from the main bot state. It tracks:
+- Weekend prediction configurations and lock windows
+- All user picks per weekend
+- Scored results and official results used for scoring
+- Cumulative season leaderboard
+- Which announcement/result posts have been sent
 
 ## SDK Notes & Limitations
 
