@@ -114,8 +114,7 @@ export function buildDriverStandingsEmbed(standings: DriverStanding[], season: s
     .setColor(F1_RED)
     .setTitle(`🏆 ${season} Driver Standings`);
 
-  const top22 = standings.slice(0, 22);
-  const lines = top22.map((s) => {
+  const lines = standings.map((s) => {
     const rawName = s.driver?.shortName
       || `${s.driver?.name ?? ''} ${s.driver?.surname ?? ''}`.trim()
       || 'Unknown';
@@ -126,7 +125,7 @@ export function buildDriverStandingsEmbed(standings: DriverStanding[], season: s
   });
 
   embed.setDescription(lines.join('\n'));
-  embed.setFooter({ text: 'Top 10 drivers shown' });
+  embed.setFooter({ text: `${standings.length} drivers shown` });
 
   return embed;
 }
@@ -139,14 +138,13 @@ export function buildConstructorStandingsEmbed(standings: ConstructorStanding[],
     .setColor(F1_RED)
     .setTitle(`🏗️ ${season} Constructor Standings`);
 
-  const top11 = standings.slice(0, 11);
-  const lines = top11.map((s) => {
+  const lines = standings.map((s) => {
     const name = s.team?.teamName || 'Unknown';
     return `**${s.position}.** ${name} — **${s.points}** pts`;
   });
 
   embed.setDescription(lines.join('\n'));
-  embed.setFooter({ text: `Showing ${top11.length} constructors` });
+  embed.setFooter({ text: `Showing ${standings.length} constructors` });
 
   return embed;
 }
