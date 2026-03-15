@@ -1,0 +1,36 @@
+{
+  "name": "discord-f1-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for Formula 1 information using f1api.dev",
+  "main": "dist/src/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/src/index.js",
+    "dev": "ts-node src/index.ts",
+    "deploy-commands": "ts-node scripts/deploy-commands.ts",
+    "postinstall": "node -e \"const fs=require('fs'),p=require('path'),t=p.join('node_modules','@f1api','sdk','dist','index.cjs');if(!fs.existsSync(t)){const s=p.join('node_modules','@f1api','sdk','dist','index.js');if(fs.existsSync(s))fs.symlinkSync('index.js',t)}\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daudk3/discord-f1-bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/daudk3/discord-f1-bot/issues"
+  },
+  "homepage": "https://github.com/daudk3/discord-f1-bot#readme",
+  "dependencies": {
+    "@f1api/sdk": "^1.1.0",
+    "discord.js": "^14.25.1",
+    "dotenv": "^17.3.1",
+    "luxon": "^3.7.2"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.7.1",
+    "@types/node": "^25.5.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
